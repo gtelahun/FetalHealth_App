@@ -129,7 +129,7 @@ with tab1:
     cm_file = f"{prefix}_confusion_mat.svg" if prefix in ["rf", "dt"] else f"{prefix}_confusion_mat.svg"
     # handle AdaBoost/Voting capitalization
     if model_choice == "AdaBoost":
-        cm_file = "ADA_confusion_mat.svg"
+        cm_file = "ada_confusion_mat.svg"
     if model_choice == "Soft Voting":
         cm_file = "Voting_confusion_mat.svg"
 
@@ -143,7 +143,7 @@ with tab2:
     st.write("### Classification Report")
     cr_file = f"{prefix}_class_report.csv" if prefix in ["rf", "dt"] else f"{prefix}_class_report.csv"
     if model_choice == "AdaBoost":
-        cr_file = "ADA_class_report.csv"
+        cr_file = "ada_class_report.csv"
     if model_choice == "Soft Voting":
         cr_file = "Voting_class_report.csv"
 
@@ -163,8 +163,8 @@ with tab3:
         fi_file = "rf_feature_imp.svg"
     elif model_choice == "Decision Tree" and exists("dt_feature_imp.svg"):
         fi_file = "dt_feature_imp.svg"
-    elif model_choice == "AdaBoost" and exists("ADA_feature_imp.svg"):
-        fi_file = "ADA_feature_imp.svg"
+    elif model_choice == "AdaBoost" and exists("ada_feature_imp.svg"):
+        fi_file = "ada_feature_imp.svg"
     elif model_choice == "Soft Voting" and exists("voting_feature_imp.svg"):
         fi_file = "voting_feature_imp.svg"
 
