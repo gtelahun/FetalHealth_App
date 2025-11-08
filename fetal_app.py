@@ -120,63 +120,71 @@ st.subheader(f"Predicting Fetal Health Using {model_choice} Model")
 st.dataframe(styled, use_container_width=True)
 
 # Tabs: Confusion Matrix / Classification Report / Feature Importance
+import os
+
 st.subheader("Model Performance and Insights")
 tab1, tab2, tab3 = st.tabs(["Confusion Matrix", "Classification Report", "Feature Importance"])
 
-# Tab 1: Confusion Matrix image
+def file_exists(p): 
+    return os.path.exists(p)
+
+# --- Tab 1: Confusion Matrix ---
 with tab1:
     st.write("### Confusion Matrix")
-    cm_file = f"{prefix}_confusion_mat.svg" if prefix in ["rf", "dt"] else f"{prefix}_confusion_mat.svg"
-    # handle AdaBoost/Voting capitalization
-    if model_choice == "AdaBoost":
-        cm_file = "ADA_confusion_mat.svg"
-    if model_choice == "Soft Voting":
+    if model_choice == "Random Forest":
+        cm_file = "rf_confusion_mat.svg"
+    elif model_choice == "Decision Tree":
+        cm_file = "dt_confusion_mat.svg"
+    elif model_choice == "AdaBoost":
+        cm_file = "ADA_confusion_mat.svg"   # NOTE: uppercase ADA in your repo
+    else:  # Soft Voting
         cm_file = "Voting_confusion_mat.svg"
 
-    if exists(cm_file):
+    if file_exists(cm_file):
         st.image(cm_file, use_container_width=True)
     else:
-        st.caption("Confusion matrix file not found. Re-run the notebook to generate it.")
+        st.warning(f"Confusion matrix image not found: {cm_file}. Re-run the notebook to export it.")
 
-# Tab 2: Classification Report CSV
+# --- Tab 2: Classification Report ---
 with tab2:
     st.write("### Classification Report")
-    cr_file = f"{prefix}_class_report.csv" if prefix in ["rf", "dt"] else f"{prefix}_class_report.csv"
-    if model_choice == "AdaBoost":
+    if model_choice == "Random Forest":
+        cr_file = "rf_class_report.csv"
+    elif model_choice == "Decision Tree":
+        cr_file = "dt_class_report.csv"
+    elif model_choice == "AdaBoost":
         cr_file = "ADA_class_report.csv"
-    if model_choice == "Soft Voting":
+    else:
         cr_file = "Voting_class_report.csv"
 
-    if exists(cr_file):
+    if file_exists(cr_file):
         rep_df = pd.read_csv(cr_file)
         st.dataframe(rep_df, use_container_width=True)
         st.caption("Precision, Recall, F1-Score, and Support for each class.")
     else:
-        st.caption("Classification report file not found. Re-run the notebook to export it.")
+        st.warning(f"Classification report file not found: {cr_file}")
 
-# Tab 3: Feature Importance
+# --- Tab 3: Feature Importance ---
 with tab3:
     st.write("### Feature Importance")
-    # prefer pre-saved SVGs when available; otherwise compute a quick barplot if model exposes importances
-    fi_file = None
-    if model_choice == "Random Forest" and exists("rf_feature_imp.svg"):
+    if model_choice == "Random Forest":
         fi_file = "rf_feature_imp.svg"
-    elif model_choice == "Decision Tree" and exists("dt_feature_imp.svg"):
+    elif model_choice == "Decision Tree":
         fi_file = "dt_feature_imp.svg"
-    elif model_choice == "AdaBoost" and exists("ADA_feature_imp.svg"):
-        fi_file = "ADA_feature_imp.svg"
-    elif model_choice == "Soft Voting" and exists("voting_feature_imp.svg"):
+    elif model_choice == "AdaBoost":
+        fi_file = "ADA_feature_imp.svg"     # NOTE: uppercase ADA in your repo
+    else:
         fi_file = "voting_feature_imp.svg"
 
-    if fi_file is not None:
+    if file_exists(fi_file):
         st.image(fi_file, use_container_width=True)
         st.caption("Features ranked by relative importance.")
     else:
-        # fall back: compute simple barplot if model supports attribute
+        # graceful fallback: show a live barplot if available
         if hasattr(clf, "feature_importances_"):
             imp = np.array(clf.feature_importances_, dtype=float)
-            if imp.sum() > 0:
-                imp = imp / imp.sum()
+            s = imp.sum()
+            if s > 0: imp = imp / s
             order = np.argsort(imp)[::-1]
             fig, ax = plt.subplots(figsize=(8, 4))
             ax.bar(np.arange(len(feature_cols)), imp[order])
@@ -186,6 +194,5 @@ with tab3:
             ax.set_title(f"{model_choice} — Feature Importance")
             fig.tight_layout()
             st.pyplot(fig)
-            st.caption("Computed live from the loaded model.")
         else:
-            st.caption("Feature importance graphic not available for this model.")
+            st.warning(f"Feature importance image not found: {fi_file}")
